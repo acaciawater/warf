@@ -14,13 +14,11 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.sys.path.append('/home/theo/texelmeet/acaciadata')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.8/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = '76idat#7=vr!fdg$%c!5evt5%f0rb2qdnq***z)js8ifdzsp39'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -37,6 +35,13 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.gis',
+    'bootstrap3',
+    'registration',
+    'acacia',
+    'acacia.data',
+    'acacia.data.knmi',
+    'warf',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -70,18 +75,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'warf.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/1.8/ref/settings/#databases
-
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    }
-}
-
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/
 
@@ -100,3 +93,91 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+UPLOAD_DATAFILES = 'datafiles' 
+UPLOAD_THUMBNAILS = 'thumbnails' 
+UPLOAD_IMAGES = 'images' 
+
+# voor plaatjes website provincie: wellen.acaciadata.com/img/management.png
+IMG_URL = '/img/'
+IMG_ROOT = os.path.join(os.path.dirname(BASE_DIR),'img')
+
+# Grapelli admin
+GRAPPELLI_ADMIN_TITLE='Beheer van Warfstermolen meetgegevens'
+
+# Celery stuff
+#BROKER_URL = 'django://'
+CELERY_RESULT_BACKEND='djcelery.backends.database:DatabaseBackend'
+INSTALLED_APPS += ('kombu.transport.django','djcelery',)                  
+
+#CELERY_ALWAYS_EAGER = DEBUG
+
+# registration stuff
+ACCOUNT_ACTIVATION_DAYS = 7
+LOGIN_REDIRECT_URL = '/data/'
+
+LOGGING_ROOT = os.path.join(BASE_DIR, 'logs')
+
+# Logging
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOGGING_ROOT, 'warf.log'),
+            'when': 'D',
+            'interval': 1, # every day a new file
+            'backupCount': 0,
+            'formatter': 'default'
+        },
+        'update': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOGGING_ROOT, 'update.log'),
+            'when': 'D',
+            'interval': 1, # every day a new file
+            'backupCount': 0,
+            'formatter': 'update'
+        },
+        'django': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': os.path.join(LOGGING_ROOT, 'django.log'),
+            'when': 'D',
+            'interval': 1, # every day a new file
+            'backupCount': 0,
+        },
+    },
+    'formatters': {
+        'default': {
+            'format': '%(levelname)s %(asctime)s %(name)s: %(message)s'
+        },
+        'update' : {
+            'format': '%(levelname)s %(asctime)s %(datasource)s: %(message)s'
+        }
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['django'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'acacia.data': {
+            'handlers': ['file',],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+        'update' : {
+            'handlers': ['update', ],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+}
+
+from secrets import *
